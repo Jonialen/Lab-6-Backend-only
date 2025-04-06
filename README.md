@@ -107,9 +107,3 @@ Para obtener información más detallada sobre cada componente, consulta sus res
 * README del Frontend (./series-tracker/README.md)
 * README del Backend (./series-tracker-backend/README.md)
 * README de la Base de Datos (./series-tracker-database/README.md)
-
-Para usar esto:
-
-1. Crea un archivo llamado `README.md` directamente dentro de la carpeta `Lab-6-Backend-only` (al mismo nivel que `docker-compose.yml`, `series-tracker/`, `series-tracker-backend/`, etc.).
-2. Copia y pega el contenido de arriba en ese archivo.
-3. Revisa y ajusta cualquier detalle (como el marcador de posición de la URL del repositorio) si es necesario.
