@@ -104,6 +104,6 @@ Lab-6-Backend-only/
 
 Para obtener información más detallada sobre cada componente, consulta sus respectivos archivos README:
 
-* README del Frontend (./series-tracker/README.md)
-* README del Backend (./series-tracker-backend/README.md)
-* README de la Base de Datos (./series-tracker-database/README.md)
+* [README del Frontend](./series-tracker/README.md)
+* [README del Backend](./series-tracker-backend/README.md)
+* [README de la Base de Datos](./series-tracker-database/README.md)
