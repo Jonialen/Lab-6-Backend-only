@@ -1,0 +1,390 @@
+basePath: /api
+definitions:
+  handlers.ErrorResponse:
+    description: Estructura estándar para errores de la API con un mensaje descriptivo.
+    properties:
+      message:
+        description: |-
+          Message contiene el mensaje descriptivo del error ocurrido.
+          example: "Serie no encontrada"
+        type: string
+    type: object
+  models.Series:
+    description: Estructura de datos para una Serie de TV.
+    properties:
+      id:
+        description: |-
+          ID es el identificador único de la serie (Clave primaria, autoincremental).
+          example: 1
+        type: integer
+      lastEpisodeWatched:
+        description: |-
+          LastEpisodeWatched es el número del último episodio que el usuario ha visto.
+          example: 10
+        type: integer
+      ranking:
+        description: |-
+          Ranking es una puntuación o valoración asignada a la serie por el usuario.
+          Puede ser modificada mediante los endpoints de upvote/downvote.
+          example: 8
+        type: integer
+      status:
+        description: |-
+          Status indica el estado actual de visualización de la serie.
+          Debe ser uno de: 'Plan to Watch', 'Watching', 'Completed', 'Dropped'.
+          example: "Watching"
+        type: string
+      title:
+        description: |-
+          Title es el título de la serie. Es un campo obligatorio.
+          example: "Attack on Titan"
+          required: true
+        type: string
+      totalEpisodes:
+        description: |-
+          TotalEpisodes es el número total de episodios que tiene la serie.
+          example: 24
+        type: integer
+    required:
+    - title
+    type: object
+  models.StatusUpdate:
+    description: Estructura para la actualización parcial del estado de una serie.
+    properties:
+      status:
+        description: |-
+          Status es el nuevo estado que se asignará a la serie. Campo obligatorio.
+          example: "Completed"
+          required: true
+        type: string
+    required:
+    - status
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: API RESTful en Go para gestionar y rastrear el progreso de visualización
+    de series de TV. Utiliza Chi para el enrutamiento y GORM para la base de datos.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Series Tracker API
+  version: "1.0"
+paths:
+  /series:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista completa de todas las series almacenadas en la
+        base de datos.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de series recuperada exitosamente
+          schema:
+            items:
+              $ref: '#/definitions/models.Series'
+            type: array
+        "500":
+          description: Error interno del servidor al buscar series
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Listar todas las series
+      tags:
+      - Series
+    post:
+      consumes:
+      - application/json
+      description: Añade una nueva serie a la base de datos utilizando los datos proporcionados
+        en el cuerpo de la solicitud. El ID es auto-generado por la base de datos.
+      parameters:
+      - description: Datos de la nueva serie a crear (el campo ID será ignorado)
+        in: body
+        name: series
+        required: true
+        schema:
+          $ref: '#/definitions/models.Series'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Serie creada exitosamente (devuelve el objeto completo con
+            el nuevo ID)
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: Entrada inválida (ej. JSON mal formado, falta título)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al guardar la serie
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Crear una nueva serie
+      tags:
+      - Series
+  /series/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina permanentemente una serie de la base de datos utilizando
+        su ID.
+      parameters:
+      - description: ID de la Serie a eliminar
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Sin contenido (eliminado exitosamente)
+        "400":
+          description: ID proporcionado inválido (no es un número)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada para eliminar
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al eliminar la serie
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Eliminar una serie
+      tags:
+      - Series
+    get:
+      consumes:
+      - application/json
+      description: Obtiene los detalles de una serie específica usando su ID numérico
+        proporcionado en la URL.
+      parameters:
+      - description: ID de la Serie a buscar
+        example: 1
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detalles de la serie encontrados
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: ID proporcionado inválido (no es un número)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada con el ID proporcionado
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al buscar la serie
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Obtener una serie por ID
+      tags:
+      - Series
+    put:
+      consumes:
+      - application/json
+      description: Actualiza todos los campos de una serie existente identificada
+        por su ID, utilizando los datos proporcionados en el cuerpo de la solicitud.
+      parameters:
+      - description: ID de la Serie a actualizar
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nuevos datos completos para la serie (se usará el ID de la URL,
+          no el del cuerpo si existe)
+        in: body
+        name: series
+        required: true
+        schema:
+          $ref: '#/definitions/models.Series'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Serie actualizada exitosamente
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: Entrada inválida (ej. JSON mal formado, ID inválido en URL)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada con el ID proporcionado
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al actualizar la serie
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Actualizar una serie existente
+      tags:
+      - Series
+  /series/{id}/downvote:
+    patch:
+      consumes:
+      - application/json
+      description: Decrementa en 1 el campo 'ranking' de la serie identificada por
+        su ID.
+      parameters:
+      - description: ID de la Serie a votar negativamente
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ranking decrementado, devuelve la serie actualizada
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: ID proporcionado inválido
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al actualizar el ranking
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Votar negativamente (Downvote) una serie
+      tags:
+      - Series Actions
+  /series/{id}/episode:
+    patch:
+      consumes:
+      - application/json
+      description: Incrementa en 1 el campo 'lastEpisodeWatched' de la serie identificada
+        por ID. No realiza cambios si el último episodio visto ya es igual o mayor
+        al total de episodios.
+      parameters:
+      - description: ID de la Serie cuyo episodio se incrementará
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Episodio incrementado, devuelve la serie actualizada
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: ID proporcionado inválido
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al incrementar el episodio
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Incrementar episodio visto
+      tags:
+      - Series Actions
+  /series/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Actualiza únicamente el campo 'status' de una serie existente identificada
+        por su ID.
+      parameters:
+      - description: ID de la Serie cuyo estado se actualizará
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Objeto JSON con el nuevo estado
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/models.StatusUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estado actualizado, devuelve la serie completa
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: Entrada inválida (ej. JSON mal formado, falta status, ID inválido)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al actualizar el estado
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Actualizar estado de una serie (parcial)
+      tags:
+      - Series Actions
+  /series/{id}/upvote:
+    patch:
+      consumes:
+      - application/json
+      description: Incrementa en 1 el campo 'ranking' de la serie identificada por
+        su ID.
+      parameters:
+      - description: ID de la Serie a votar positivamente
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ranking incrementado, devuelve la serie actualizada
+          schema:
+            $ref: '#/definitions/models.Series'
+        "400":
+          description: ID proporcionado inválido
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Serie no encontrada
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Error interno del servidor al actualizar el ranking
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Votar positivamente (Upvote) una serie
+      tags:
+      - Series Actions
+schemes:
+- http
+- https
+swagger: "2.0"

@@ -1,0 +1,529 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API RESTful en Go para gestionar y rastrear el progreso de visualización de series de TV. Utiliza Chi para el enrutamiento y GORM para la base de datos.",
+        "title": "Series Tracker API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.example.com/support",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/series": {
+            "get": {
+                "description": "Obtiene una lista completa de todas las series almacenadas en la base de datos.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series"
+                ],
+                "summary": "Listar todas las series",
+                "responses": {
+                    "200": {
+                        "description": "Lista de series recuperada exitosamente",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Series"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al buscar series",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Añade una nueva serie a la base de datos utilizando los datos proporcionados en el cuerpo de la solicitud. El ID es auto-generado por la base de datos.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series"
+                ],
+                "summary": "Crear una nueva serie",
+                "parameters": [
+                    {
+                        "description": "Datos de la nueva serie a crear (el campo ID será ignorado)",
+                        "name": "series",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Serie creada exitosamente (devuelve el objeto completo con el nuevo ID)",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Entrada inválida (ej. JSON mal formado, falta título)",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al guardar la serie",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/{id}": {
+            "get": {
+                "description": "Obtiene los detalles de una serie específica usando su ID numérico proporcionado en la URL.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series"
+                ],
+                "summary": "Obtener una serie por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "example": 1,
+                        "description": "ID de la Serie a buscar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles de la serie encontrados",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "ID proporcionado inválido (no es un número)",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada con el ID proporcionado",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al buscar la serie",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza todos los campos de una serie existente identificada por su ID, utilizando los datos proporcionados en el cuerpo de la solicitud.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series"
+                ],
+                "summary": "Actualizar una serie existente",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie a actualizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nuevos datos completos para la serie (se usará el ID de la URL, no el del cuerpo si existe)",
+                        "name": "series",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Serie actualizada exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Entrada inválida (ej. JSON mal formado, ID inválido en URL)",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada con el ID proporcionado",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al actualizar la serie",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina permanentemente una serie de la base de datos utilizando su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series"
+                ],
+                "summary": "Eliminar una serie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie a eliminar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sin contenido (eliminado exitosamente)"
+                    },
+                    "400": {
+                        "description": "ID proporcionado inválido (no es un número)",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada para eliminar",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al eliminar la serie",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/{id}/downvote": {
+            "patch": {
+                "description": "Decrementa en 1 el campo 'ranking' de la serie identificada por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series Actions"
+                ],
+                "summary": "Votar negativamente (Downvote) una serie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie a votar negativamente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking decrementado, devuelve la serie actualizada",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "ID proporcionado inválido",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al actualizar el ranking",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/{id}/episode": {
+            "patch": {
+                "description": "Incrementa en 1 el campo 'lastEpisodeWatched' de la serie identificada por ID. No realiza cambios si el último episodio visto ya es igual o mayor al total de episodios.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series Actions"
+                ],
+                "summary": "Incrementar episodio visto",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie cuyo episodio se incrementará",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Episodio incrementado, devuelve la serie actualizada",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "ID proporcionado inválido",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al incrementar el episodio",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/{id}/status": {
+            "patch": {
+                "description": "Actualiza únicamente el campo 'status' de una serie existente identificada por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series Actions"
+                ],
+                "summary": "Actualizar estado de una serie (parcial)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie cuyo estado se actualizará",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Objeto JSON con el nuevo estado",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StatusUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado actualizado, devuelve la serie completa",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "Entrada inválida (ej. JSON mal formado, falta status, ID inválido)",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al actualizar el estado",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/series/{id}/upvote": {
+            "patch": {
+                "description": "Incrementa en 1 el campo 'ranking' de la serie identificada por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Series Actions"
+                ],
+                "summary": "Votar positivamente (Upvote) una serie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "ID de la Serie a votar positivamente",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking incrementado, devuelve la serie actualizada",
+                        "schema": {
+                            "$ref": "#/definitions/models.Series"
+                        }
+                    },
+                    "400": {
+                        "description": "ID proporcionado inválido",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Serie no encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al actualizar el ranking",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.ErrorResponse": {
+            "description": "Estructura estándar para errores de la API con un mensaje descriptivo.",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "Message contiene el mensaje descriptivo del error ocurrido.\nexample: \"Serie no encontrada\"",
+                    "type": "string"
+                }
+            }
+        },
+        "models.Series": {
+            "description": "Estructura de datos para una Serie de TV.",
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "id": {
+                    "description": "ID es el identificador único de la serie (Clave primaria, autoincremental).\nexample: 1",
+                    "type": "integer"
+                },
+                "lastEpisodeWatched": {
+                    "description": "LastEpisodeWatched es el número del último episodio que el usuario ha visto.\nexample: 10",
+                    "type": "integer"
+                },
+                "ranking": {
+                    "description": "Ranking es una puntuación o valoración asignada a la serie por el usuario.\nPuede ser modificada mediante los endpoints de upvote/downvote.\nexample: 8",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "Status indica el estado actual de visualización de la serie.\nDebe ser uno de: 'Plan to Watch', 'Watching', 'Completed', 'Dropped'.\nexample: \"Watching\"",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Title es el título de la serie. Es un campo obligatorio.\nexample: \"Attack on Titan\"\nrequired: true",
+                    "type": "string"
+                },
+                "totalEpisodes": {
+                    "description": "TotalEpisodes es el número total de episodios que tiene la serie.\nexample: 24",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.StatusUpdate": {
+            "description": "Estructura para la actualización parcial del estado de una serie.",
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "description": "Status es el nuevo estado que se asignará a la serie. Campo obligatorio.\nexample: \"Completed\"\nrequired: true",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
