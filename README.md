@@ -12,21 +12,21 @@ La aplicación sigue una arquitectura cliente-servidor estándar con una base de
 
 1. **Frontend (`series-tracker`)**: Una aplicación de una sola página (SPA) construida con JavaScript vanilla, HTML y CSS. Proporciona la interfaz de usuario para interactuar con los datos de las series.
 2. **Backend (`series-tracker-backend`)**: Una API RESTful construida con Go (Golang). Maneja la lógica de negocio, interactúa con la base de datos y sirve datos al frontend. Incluye documentación Swagger para los endpoints de la API.
-3. **Base de datos (`series-tracker-database`)**: Una base de datos MySQL (MariaDB) utilizada para almacenar toda la información de las series. Se proporciona un script `init.sql` para configurar la(s) tabla(s) necesaria(s) al inicializar.
+3. **Base de datos (`series-tracker-database`)**: Una base de datos PostgreSQL utilizada para almacenar toda la información de las series. Se proporciona un script `init.sql` para configurar la(s) tabla(s) necesaria(s) al inicializar.
 
 ## Stack Tecnológico
 
 * **Frontend**: HTML, CSS, JavaScript (Vanilla JS)
-* **Backend**: Go (Golang)
-* **Base de datos**: MySQL (MariaDB)
+* **Backend**: Go (Golang), Gin (Framework Web - inferido), GORM (ORM - inferido), Swag (Docs Swagger)
+* **Base de datos**: PostgreSQL
 * **Contenedorización**: Docker, Docker Compose
 
 ## Prerrequisitos
 
 Antes de comenzar, asegúrate de tener instalado lo siguiente:
 
-* [Docker](https://docs.docker.com/get-docker/)
-* [Docker Compose](https://docs.docker.com/compose/install/) (Generalmente incluido con Docker Desktop)
+* Docker (https://docs.docker.com/get-docker/)
+* Docker Compose (https://docs.docker.com/compose/install/) (Generalmente incluido con Docker Desktop)
 
 ## Empezando
 
@@ -66,11 +66,11 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 Una vez que los contenedores estén en funcionamiento:
 
 * **Aplicación Frontend**: Accede a la interfaz web en tu navegador en:
-    `http://localhost:{puerto eleccion}`
+    `http://localhost:8080`
     *(Este puerto está definido en el archivo `docker-compose.yml`)*
 
 * **API Backend**: Los endpoints de la API se sirven en:
-    `http://localhost:8080`
+    `http://localhost:5000`
     *(Este puerto está definido en el archivo `docker-compose.yml`)*
 
 * **Documentación de la API (Swagger)**: Puedes explorar los endpoints de la API utilizando la interfaz de usuario de Swagger disponible en:
@@ -100,18 +100,16 @@ Lab-6-Backend-only/
 │   └── README.md             # Detalles específicos de la base de datos
 └── README.md                 # Este archivo (Visión General del Proyecto)
 
-
 ## Información Adicional
 
 Para obtener información más detallada sobre cada componente, consulta sus respectivos archivos README:
 
-* [README del Frontend](./series-tracker/README.md)
-* [README del Backend](./series-tracker-backend/README.md)
-* [README de la Base de Datos](./series-tracker-database/README.md)
+* README del Frontend (./series-tracker/README.md)
+* README del Backend (./series-tracker-backend/README.md)
+* README de la Base de Datos (./series-tracker-database/README.md)
 
 Para usar esto:
 
 1. Crea un archivo llamado `README.md` directamente dentro de la carpeta `Lab-6-Backend-only` (al mismo nivel que `docker-compose.yml`, `series-tracker/`, `series-tracker-backend/`, etc.).
 2. Copia y pega el contenido de arriba en ese archivo.
 3. Revisa y ajusta cualquier detalle (como el marcador de posición de la URL del repositorio) si es necesario.
-
