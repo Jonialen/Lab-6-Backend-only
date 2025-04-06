@@ -20,8 +20,8 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedOrigins:   []string{"*"}, // Considera restringir esto en producción
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}))
@@ -33,6 +33,11 @@ func main() {
 	r.Put("/api/series/{id}", handlers.UpdateSeries)
 	r.Delete("/api/series/{id}", handlers.DeleteSeries)
 
+	r.Patch("/api/series/{id}/status", handlers.UpdateSeriesStatus)
+	r.Patch("/api/series/{id}/episode", handlers.IncrementSeriesEpisode)
+	r.Patch("/api/series/{id}/upvote", handlers.UpvoteSeries)
+	r.Patch("/api/series/{id}/downvote", handlers.DownvoteSeries)
+
 	// Iniciar el servidor
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -41,4 +46,3 @@ func main() {
 	log.Println("Servidor corriendo en http://localhost:" + port)
 	http.ListenAndServe(":"+port, r)
 }
-
