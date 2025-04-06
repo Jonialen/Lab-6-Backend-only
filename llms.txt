@@ -1,0 +1,175 @@
+# Descripción de la API de Series Tracker
+
+## Resumen General
+Esta API permite gestionar una colección de series de TV, realizando un seguimiento de su progreso (temporada/episodio actual) y estado. Proporciona operaciones CRUD (Crear, Leer, Actualizar, Eliminar) para las series. La API responde y espera datos en formato JSON.
+
+## URL Base
+La API se ejecuta localmente en http://localhost:8080. Todas las rutas de los endpoints son relativas a esta URL base. (Nota: El puerto 8080 se infiere de main.go. Si se despliega en otro lugar, esta URL cambiará).
+
+## Autenticación
+Actualmente, la API no implementa ningún mecanismo de autenticación o autorización. Todos los endpoints son públicos.
+
+## Modelo de Datos Principal: `Series`
+El objeto principal que maneja la API es `Series`. Tiene la siguiente estructura JSON:
+
+{
+  "id": "string",           // Identificador único de la serie (UUID v4), generado por el servidor en la creación.
+  "title": "string",        // Título de la serie (obligatorio).
+  "seasons": "integer",     // Número total de temporadas de la serie (obligatorio, debe ser > 0).
+  "currentSeason": "integer", // Temporada actual que se está viendo (obligatorio, >= 1).
+  "currentEpisode": "integer",// Episodio actual que se está viendo dentro de la temporada actual (obligatorio, >= 1).
+  "status": "string"        // Estado de la serie (ej: "Watching", "Completed", "Paused", "Plan to Watch").
+}
+
+Notas sobre el modelo:
+* El campo id es de solo lectura desde la perspectiva del cliente para las operaciones POST y PUT (se usa en la URL para PUT y DELETE). El servidor lo asigna al crear una nueva serie.
+* Los campos title, seasons, currentSeason, y currentEpisode son generalmente obligatorios al crear o actualizar una serie. Pueden existir validaciones adicionales en el backend (ej: currentSeason no debe ser mayor que seasons).
+
+## Endpoints de la API
+
+---
+
+### 1. Obtener todas las series
+
+* Método: GET
+* Ruta: /series
+* Descripción: Recupera una lista de todas las series almacenadas en la base de datos.
+* Parámetros: Ninguno.
+* Cuerpo de la Solicitud: Ninguno.
+* Respuesta Exitosa (Código 200 OK):
+    * Cuerpo: Un array JSON de objetos Series.
+    [
+      {
+        "id": "uuid-1",
+        "title": "Serie Ejemplo 1",
+        "seasons": 5,
+        "currentSeason": 2,
+        "currentEpisode": 3,
+        "status": "Watching"
+      },
+      {
+        "id": "uuid-2",
+        "title": "Serie Ejemplo 2",
+        "seasons": 3,
+        "currentSeason": 3,
+        "currentEpisode": 10,
+        "status": "Completed"
+      }
+      // ... más series
+    ]
+* Respuestas de Error:
+    * 500 Internal Server Error: Si ocurre un error al consultar la base de datos.
+
+---
+
+### 2. Crear una nueva serie
+
+* Método: POST
+* Ruta: /series
+* Descripción: Añade una nueva serie a la colección.
+* Parámetros: Ninguno.
+* Cuerpo de la Solicitud: Un objeto JSON que representa la nueva serie. El campo id debe omitirse o será ignorado, ya que el servidor lo genera.
+    {
+      "title": "Nueva Serie Increíble",
+      "seasons": 4,
+      "currentSeason": 1,
+      "currentEpisode": 1,
+      "status": "Plan to Watch"
+    }
+* Respuesta Exitosa (Código 201 Created):
+    * Cuerpo: El objeto Series recién creado, incluyendo el id asignado por el servidor.
+    {
+      "id": "nuevo-uuid-generado",
+      "title": "Nueva Serie Increíble",
+      "seasons": 4,
+      "currentSeason": 1,
+      "currentEpisode": 1,
+      "status": "Plan to Watch"
+    }
+* Respuestas de Error:
+    * 400 Bad Request: Si el cuerpo de la solicitud es inválido (JSON malformado, faltan campos obligatorios, tipos de datos incorrectos, validaciones fallidas como seasons <= 0).
+    * 500 Internal Server Error: Si ocurre un error al guardar en la base de datos.
+
+---
+
+### 3. Obtener una serie específica por ID
+
+* Método: GET
+* Ruta: /series/{id}
+* Descripción: Recupera los detalles de una serie específica usando su ID único.
+* Parámetros:
+    * id (parámetro de ruta, string, obligatorio): El ID (UUID) de la serie a recuperar.
+* Cuerpo de la Solicitud: Ninguno.
+* Respuesta Exitosa (Código 200 OK):
+    * Cuerpo: El objeto Series correspondiente al ID solicitado.
+    {
+      "id": "uuid-especifico",
+      "title": "Serie Específica",
+      "seasons": 6,
+      "currentSeason": 4,
+      "currentEpisode": 8,
+      "status": "Watching"
+    }
+* Respuestas de Error:
+    * 404 Not Found: Si no se encuentra ninguna serie con el id proporcionado.
+    * 500 Internal Server Error: Si ocurre un error al consultar la base de datos.
+
+---
+
+### 4. Actualizar una serie existente
+
+* Método: PUT
+* Ruta: /series/{id}
+* Descripción: Modifica los detalles de una serie existente identificada por su ID. Reemplaza completamente la información de la serie con los datos proporcionados en el cuerpo.
+* Parámetros:
+    * id (parámetro de ruta, string, obligatorio): El ID (UUID) de la serie a actualizar.
+* Cuerpo de la Solicitud: Un objeto JSON con la estructura Series conteniendo los nuevos datos para la serie. El id en el cuerpo es opcional o ignorado; el id de la URL es el que se utiliza.
+    {
+      "title": "Serie Específica (Actualizada)",
+      "seasons": 6,
+      "currentSeason": 4,
+      "currentEpisode": 9, // Episodio actualizado
+      "status": "Watching"
+    }
+* Respuesta Exitosa (Código 200 OK):
+    * Cuerpo: El objeto Series actualizado.
+    {
+      "id": "uuid-especifico",
+      "title": "Serie Específica (Actualizada)",
+      "seasons": 6,
+      "currentSeason": 4,
+      "currentEpisode": 9,
+      "status": "Watching"
+    }
+* Respuestas de Error:
+    * 400 Bad Request: Si el cuerpo de la solicitud es inválido (JSON malformado, faltan campos obligatorios, tipos incorrectos, validaciones fallidas).
+    * 404 Not Found: Si no se encuentra ninguna serie con el id proporcionado en la URL.
+    * 500 Internal Server Error: Si ocurre un error al actualizar en la base de datos.
+
+---
+
+### 5. Eliminar una serie
+
+* Método: DELETE
+* Ruta: /series/{id}
+* Descripción: Elimina permanentemente una serie de la colección usando su ID.
+* Parámetros:
+    * id (parámetro de ruta, string, obligatorio): El ID (UUID) de la serie a eliminar.
+* Cuerpo de la Solicitud: Ninguno.
+* Respuesta Exitosa (Código 200 OK o 204 No Content):
+    * Cuerpo: Generalmente vacío. El código 200 OK podría incluir un mensaje de confirmación simple, mientras que 204 No Content (más común para DELETE) no tendría cuerpo. Basado en handlers.go, parece que devuelve 200 OK con un mensaje.
+    {
+        "message": "Serie eliminada exitosamente"
+    }
+* Respuestas de Error:
+    * 404 Not Found: Si no se encuentra ninguna serie con el id proporcionado.
+    * 500 Internal Server Error: Si ocurre un error al eliminar de la base de datos.
+
+---
+
+## Consideraciones Adicionales para la IA
+
+* Content-Type: Asegúrate de que todas las solicitudes con cuerpo (POST, PUT) incluyan la cabecera Content-Type: application/json.
+* Accept Header: Es buena práctica incluir la cabecera Accept: application/json en todas las solicitudes para indicar que esperas una respuesta JSON.
+* Manejo de IDs: Recuerda que los IDs son generados por el servidor (UUIDs). Necesitarás obtener el ID de una serie (ya sea de la respuesta de un POST o de un GET a /series) antes de poder usar los endpoints GET (específico), PUT o DELETE que lo requieren en la ruta.
+* Validaciones: Presta atención a los requisitos de los campos (obligatorios, tipos de datos, rangos numéricos implícitos como temporadas/episodios >= 1). Enviar datos inválidos resultará en un error 400 Bad Request.
